@@ -25,15 +25,12 @@ class ViewController: UIViewController {
     var entityAa02ID: NSManagedObjectID!
     var entityBb01ID: NSManagedObjectID!
     var entityC_ID  : NSManagedObjectID!
-    var entity_c03ID: NSManagedObjectID!
     var entityD_ID  : NSManagedObjectID!
     var entityEe09ID: NSManagedObjectID!
     var entityFF06ID: NSManagedObjectID!
     var entityGg07ID: NSManagedObjectID!
-    var entity_h08ID: NSManagedObjectID!
     var entityJJ11ID: NSManagedObjectID!
     var entityKK10ID: NSManagedObjectID!
-    var entity__ID  : NSManagedObjectID!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,9 +79,6 @@ class ViewController: UIViewController {
             self.entityC_ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
                 name: "C",
                 order: 3)
-            self.entity_c03ID = entityManagedObjectContext.insertAndSaveEntityWithActive(false,
-                name: "c",
-                order: 3)
             self.entityD_ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
                 name: "D",
                 order: 4)
@@ -97,18 +91,12 @@ class ViewController: UIViewController {
             self.entityGg07ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
                 name: "G",
                 order: 7)
-            self.entity_h08ID = entityManagedObjectContext.insertAndSaveEntityWithActive(false,
-                name: "h",
-                order: 8)
             self.entityJJ11ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
                 name: "J",
                 order: 10)
             self.entityKK10ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
                 name: "K",
                 order: 11)
-            self.entity__ID = entityManagedObjectContext.insertAndSaveEntityWithActive(false,
-                name: "inactive",
-                order: -1)
         }
         
         fetchedResultsControllerManagedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
@@ -172,12 +160,12 @@ class ViewController: UIViewController {
                 savingManagedObjectContext !== fetchedResultsControllerManagedObjectContext {
                     func printEntitiesForUserInfoKey(key: String) {
                         NSLog("Begin \(key)")
-                        if let managedObjectObjects = notification.userInfo?[key] as? NSSet {
-                            for managedObjectObject in managedObjectObjects {
-                                if let managedObject = managedObjectObject as? NSManagedObject {
-                                    NSLog("\(managedObject)")
+                        if let entityObjects = notification.userInfo?[key] as? NSSet {
+                            for entityObject in entityObjects {
+                                if let entity = entityObject as? Entity {
+                                    NSLog("Entity(active: \(entity.active), name: \(entity.name), order: \(entity.order))")
                                 } else {
-                                    fatalError("Expected NSManagedObject: \(managedObjectObject)")
+                                    fatalError("Expected Entity: \(entityObject)")
                                 }
                             }
                         }
@@ -280,17 +268,17 @@ extension ViewController: UITableViewDelegate {
                 managedObjectContext.updateEntityWithID(self.entityAa02ID,
                     name: "a",
                     order: 2)
-                managedObjectContext.updateEntityWithID(self.entityC_ID,
-                    active: false)
-                managedObjectContext.updateEntityWithID(self.entity_c03ID,
-                    active: true)
-                managedObjectContext.updateEntityWithID(self.entityD_ID,
-                    active: false)
+                managedObjectContext.deleteEntityWithID(self.entityC_ID)
+                let entity_c03 = managedObjectContext.insertEntityWithActive(true,
+                    name: "c",
+                    order: 3)
+                managedObjectContext.deleteEntityWithID(self.entityD_ID)
                 // entityFF06 is unchanged
                 managedObjectContext.updateEntityWithID(self.entityGg07ID,
                     name: "g")
-                managedObjectContext.updateEntityWithID(self.entity_h08ID,
-                    active: true)
+                let entity_h08 = managedObjectContext.insertEntityWithActive(true,
+                    name: "h",
+                    order: 8)
                 managedObjectContext.updateEntityWithID(self.entityEe09ID,
                     name: "e",
                     order: 9)
@@ -298,9 +286,11 @@ extension ViewController: UITableViewDelegate {
                     order: 10)
                 managedObjectContext.updateEntityWithID(self.entityJJ11ID,
                     order: 11)
-                // entity__ is unchanged
                 
                 try! managedObjectContext.save()
+                
+                NSLog("inserted \(entity_c03.name) as \(entity_c03.objectID)")
+                NSLog("inserted \(entity_h08.name) as \(entity_h08.objectID)")
             }
         }
     }
@@ -392,17 +382,28 @@ private extension NSManagedObjectContext {
         active: Bool,
         name: String,
         order: Double) -> NSManagedObjectID {
+            let entity = insertEntityWithActive(active,
+                name: name,
+                order: order)
+            
+            try! save()
+            
+            NSLog("Inserted and saved \(name) as \(entity.objectID)")
+            
+            return entity.objectID
+    }
+    
+    func insertEntityWithActive(
+        active: Bool,
+        name: String,
+        order: Double) -> Entity {
             let entity = NSEntityDescription.insertNewObjectForEntityForName("Entity",
                 inManagedObjectContext: self) as! Entity
             entity.active = active
             entity.name = name
             entity.order = order
             
-            try! save()
-            
-            NSLog("Inserted \(name) as \(entity.objectID)")
-            
-            return entity.objectID
+            return entity
     }
     
     func updateEntityWithID(
@@ -420,5 +421,9 @@ private extension NSManagedObjectContext {
             if let order = order {
                 entity.order = order
             }
+    }
+    
+    func deleteEntityWithID(entityID: NSManagedObjectID) {
+        self.deleteObject(self.objectWithID(entityID))
     }
 }
