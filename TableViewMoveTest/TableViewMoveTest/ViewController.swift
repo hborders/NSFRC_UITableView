@@ -16,26 +16,24 @@ class ViewController: UIViewController {
     var fetchedResultsControllerManagedObjectContext: NSManagedObjectContext!
     var fetchedResultsController: NSFetchedResultsController!
     
-    var entityManagedObjectContext: NSManagedObjectContext!
-    
     // variable format:
     // entity<first value, ordered alphabetically><second value><second order priority>
     // underscore means that the entity is inactive at that stage.
     // examples:
     // entityAa02 will initially have value "A" and be ordered first
     // and after the change will have value "a" and be ordered second
-    var entityAa02: Entity!
-    var entityBb01: Entity!
-    var entityC_  : Entity!
-    var entity_c03: Entity!
-    var entityE_  : Entity!
-    var entityFf09: Entity!
-    var entityGG06: Entity!
-    var entityHh07: Entity!
-    var entity_i08: Entity!
-    var entityJJ11: Entity!
-    var entityKK10: Entity!
-    var entity__  : Entity!
+    var entityAa02ID: NSManagedObjectID!
+    var entityBb01ID: NSManagedObjectID!
+    var entityC_ID  : NSManagedObjectID!
+    var entity_c03ID: NSManagedObjectID!
+    var entityD_ID  : NSManagedObjectID!
+    var entityEe09ID: NSManagedObjectID!
+    var entityFF06ID: NSManagedObjectID!
+    var entityGg07ID: NSManagedObjectID!
+    var entity_h08ID: NSManagedObjectID!
+    var entityJJ11ID: NSManagedObjectID!
+    var entityKK10ID: NSManagedObjectID!
+    var entity__ID  : NSManagedObjectID!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,7 +52,7 @@ class ViewController: UIViewController {
         
         
         persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: NSManagedObjectModel(contentsOfURL: NSBundle.mainBundle().URLForResource("Model", withExtension: "momd")!)!)
-
+        
         let useInMemoryPersistentStore = true
         if ({ return useInMemoryPersistentStore }()) {
             try! persistentStoreCoordinator.addPersistentStoreWithType(NSInMemoryStoreType,
@@ -72,82 +70,46 @@ class ViewController: UIViewController {
                 options: .None)
         }
         
-        entityManagedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        let entityManagedObjectContext = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
         entityManagedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
-        
-        entityAa02 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityAa02.active = true
-        entityAa02.name = "A"
-        entityAa02.order = 1
-        
-        entityBb01 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityBb01.active = true
-        entityBb01.name = "B"
-        entityBb01.order = 2
-        
-        entityC_ = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityC_.active = true
-        entityC_.name = "C"
-        entityC_.order = 3
-        
-        entity_c03 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entity_c03.active = false
-        entity_c03.name = "c"
-        entity_c03.order = 3
-        
-        entityE_ = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityE_.active = true
-        entityE_.name = "E"
-        entityE_.order = 4
-        
-        entityFf09 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityFf09.active = true
-        entityFf09.name = "F"
-        entityFf09.order = 5
-        
-        entityGG06 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityGG06.active = true
-        entityGG06.name = "G"
-        entityGG06.order = 6
-        
-        entityHh07 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityHh07.active = true
-        entityHh07.name = "H"
-        entityHh07.order = 7
-        
-        entity_i08 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entity_i08.active = false
-        entity_i08.name = "i"
-        entity_i08.order = 8
-        
-        entityJJ11 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityJJ11.active = true
-        entityJJ11.name = "J"
-        entityJJ11.order = 10
-        
-        entityKK10 = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entityKK10.active = true
-        entityKK10.name = "K"
-        entityKK10.order = 11
-        
-        entity__ = NSEntityDescription.insertNewObjectForEntityForName("Entity",
-            inManagedObjectContext: entityManagedObjectContext) as! Entity
-        entity__.active = false
-        entity__.name = "inactive"
-        entity__.order = -1
-        
-        try! entityManagedObjectContext.save()
+        entityManagedObjectContext.performBlockAndWait() {
+            self.entityAa02ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "A",
+                order: 1)
+            self.entityBb01ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "B",
+                order: 2)
+            self.entityC_ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "C",
+                order: 3)
+            self.entity_c03ID = entityManagedObjectContext.insertAndSaveEntityWithActive(false,
+                name: "c",
+                order: 3)
+            self.entityD_ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "D",
+                order: 4)
+            self.entityEe09ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "E",
+                order: 5)
+            self.entityFF06ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "F",
+                order: 6)
+            self.entityGg07ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "G",
+                order: 7)
+            self.entity_h08ID = entityManagedObjectContext.insertAndSaveEntityWithActive(false,
+                name: "h",
+                order: 8)
+            self.entityJJ11ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "J",
+                order: 10)
+            self.entityKK10ID = entityManagedObjectContext.insertAndSaveEntityWithActive(true,
+                name: "K",
+                order: 11)
+            self.entity__ID = entityManagedObjectContext.insertAndSaveEntityWithActive(false,
+                name: "inactive",
+                order: -1)
+        }
         
         fetchedResultsControllerManagedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
         fetchedResultsControllerManagedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
@@ -171,12 +133,95 @@ class ViewController: UIViewController {
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "entityManagedObjectContextDidSave:",
             name: NSManagedObjectContextDidSaveNotification,
-            object: entityManagedObjectContext)
+            object: .None)
     }
     
     @objc
     func entityManagedObjectContextDidSave(notification: NSNotification) {
-        fetchedResultsControllerManagedObjectContext.mergeChangesFromContextDidSaveNotification(notification)
+        func findSavingManagedObjectContextWithKey(key: String) -> NSManagedObjectContext? {
+            if let managedObjects = notification.userInfo?[key] as? NSSet {
+                for managedObjectObject in managedObjects {
+                    if let managedObject = managedObjectObject as? NSManagedObject {
+                        if let managedObjectContext = managedObject.managedObjectContext {
+                            return managedObjectContext
+                        } else {
+                            // NSManagedObjectContexts and NSManagedObjects don't retain each other by default
+                            // so it's legal for `managedObject.managedObjectContext` to be nil.
+                        }
+                    } else {
+                        fatalError("Expected NSManagedObject: \(managedObjectObject)")
+                    }
+                }
+            }
+            return .None
+        }
+        
+        let savingManagedObjectContext: NSManagedObjectContext?
+        if let foundSavingManagedObjectContext = findSavingManagedObjectContextWithKey(NSInsertedObjectsKey) {
+            savingManagedObjectContext = foundSavingManagedObjectContext
+        } else if let foundSavingManagedObjectContext = findSavingManagedObjectContextWithKey(NSUpdatedObjectsKey) {
+            savingManagedObjectContext = foundSavingManagedObjectContext
+        } else if let foundSavingManagedObjectContext = findSavingManagedObjectContextWithKey(NSDeletedObjectsKey) {
+            savingManagedObjectContext = foundSavingManagedObjectContext
+        } else {
+            savingManagedObjectContext = .None
+        }
+        
+        if let savingManagedObjectContext = savingManagedObjectContext {
+            if savingManagedObjectContext.persistentStoreCoordinator === persistentStoreCoordinator &&
+                savingManagedObjectContext !== fetchedResultsControllerManagedObjectContext {
+                    func printEntitiesForUserInfoKey(key: String) {
+                        NSLog("Begin \(key)")
+                        if let managedObjectObjects = notification.userInfo?[key] as? NSSet {
+                            for managedObjectObject in managedObjectObjects {
+                                if let managedObject = managedObjectObject as? NSManagedObject {
+                                    NSLog("\(managedObject)")
+                                } else {
+                                    fatalError("Expected NSManagedObject: \(managedObjectObject)")
+                                }
+                            }
+                        }
+                        NSLog("End \(key)")
+                    }
+                    printEntitiesForUserInfoKey(NSInsertedObjectsKey)
+                    printEntitiesForUserInfoKey(NSUpdatedObjectsKey)
+                    printEntitiesForUserInfoKey(NSDeletedObjectsKey)
+                    
+                    let useUpdatedManagedObjectsWorkaround = false
+                    if ({ return useUpdatedManagedObjectsWorkaround })() {
+                        // this method is guaranteed to be called on the saving NSManagedObjectContext's thread.
+                        // thus, it is only safe to access the updated NSManagedObjects from here.
+                        var updatedOrMovedManagedObjectIDs = [NSManagedObjectID]()
+                        func appendManagedObjectIDsFromNSSetInUserInfoWithKey(key: String) {
+                            if let managedObjectObjects = notification.userInfo?[key] as? NSSet {
+                                for managedObjectObject in managedObjectObjects {
+                                    if let managedObject = managedObjectObject as? NSManagedObject {
+                                        updatedOrMovedManagedObjectIDs.append(managedObject.objectID)
+                                    } else {
+                                        fatalError("Expected NSManagedObject: \(managedObjectObject)")
+                                    }
+                                }
+                            }
+                        }
+                        appendManagedObjectIDsFromNSSetInUserInfoWithKey(NSUpdatedObjectsKey)
+                        fetchedResultsControllerManagedObjectContext.performBlock() {
+                            // Fix/workaround from http://stackoverflow.com/a/3927811/9636
+                            for updatedManagedObjectID in updatedOrMovedManagedObjectIDs {
+                                self.fetchedResultsControllerManagedObjectContext.objectWithID(updatedManagedObjectID).willAccessValueForKey(nil)
+                            }
+                            self.fetchedResultsControllerManagedObjectContext.mergeChangesFromContextDidSaveNotification(notification)
+                        }
+                    } else {
+                        // this method is guaranteed to be called on the saving NSManagedObjectContext's thread.
+                        // we're allowed to pass a notification from this thread into mergeChangesFromContextDidSaveNotification,
+                        // but the documentation doesn't say we're allowed to call mergeChangesFromContextDidSaveNotification
+                        // from the other thread, so out of caution, we call it on fetchedResultsControllerManagedObjectContext's.
+                        fetchedResultsControllerManagedObjectContext.performBlock() {
+                            self.fetchedResultsControllerManagedObjectContext.mergeChangesFromContextDidSaveNotification(notification)
+                        }
+                    }
+            }
+        }
     }
 }
 
@@ -226,34 +271,37 @@ extension ViewController: UITableViewDelegate {
             animated: true)
         
         if indexPath.section == 1 && indexPath.row == 0 {
-            entityBb01.name = "b"
-            entityBb01.order = 1
-            
-            entityAa02.name = "a"
-            entityAa02.order = 2
-            
-            entityC_.active = false
-            
-            entity_c03.active = true
-            
-            entityE_.active = false
-            
-            // entityGG06 is unchanged
-            
-            entityHh07.name = "h"
-            
-            entity_i08.active = true
-            
-            entityFf09.name = "f"
-            entityFf09.order = 9
-            
-            entityKK10.order = 10
-            
-            entityJJ11.order = 11
-            
-            // entity__ is unchanged
-            
-            try! entityManagedObjectContext.save()
+            let managedObjectContext = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
+            managedObjectContext.persistentStoreCoordinator = persistentStoreCoordinator
+            managedObjectContext.performBlock() {
+                managedObjectContext.updateEntityWithID(self.entityBb01ID,
+                    name: "b",
+                    order: 1)
+                managedObjectContext.updateEntityWithID(self.entityAa02ID,
+                    name: "a",
+                    order: 2)
+                managedObjectContext.updateEntityWithID(self.entityC_ID,
+                    active: false)
+                managedObjectContext.updateEntityWithID(self.entity_c03ID,
+                    active: true)
+                managedObjectContext.updateEntityWithID(self.entityD_ID,
+                    active: false)
+                // entityFF06 is unchanged
+                managedObjectContext.updateEntityWithID(self.entityGg07ID,
+                    name: "g")
+                managedObjectContext.updateEntityWithID(self.entity_h08ID,
+                    active: true)
+                managedObjectContext.updateEntityWithID(self.entityEe09ID,
+                    name: "e",
+                    order: 9)
+                managedObjectContext.updateEntityWithID(self.entityKK10ID,
+                    order: 10)
+                managedObjectContext.updateEntityWithID(self.entityJJ11ID,
+                    order: 11)
+                // entity__ is unchanged
+                
+                try! managedObjectContext.save()
+            }
         }
     }
 }
@@ -336,5 +384,41 @@ extension ViewController: NSFetchedResultsControllerDelegate {
     
     func controller(controller: NSFetchedResultsController, sectionIndexTitleForSectionName sectionName: String) -> String? {
         fatalError("controller:sectionIndexTitleForSectionName: shouldn't be called")
+    }
+}
+
+private extension NSManagedObjectContext {
+    func insertAndSaveEntityWithActive(
+        active: Bool,
+        name: String,
+        order: Double) -> NSManagedObjectID {
+            let entity = NSEntityDescription.insertNewObjectForEntityForName("Entity",
+                inManagedObjectContext: self) as! Entity
+            entity.active = active
+            entity.name = name
+            entity.order = order
+            
+            try! save()
+            
+            NSLog("Inserted \(name) as \(entity.objectID)")
+            
+            return entity.objectID
+    }
+    
+    func updateEntityWithID(
+        entityID: NSManagedObjectID,
+        active: Bool? = .None,
+        name: String? = .None,
+        order: Double? = .None) {
+            let entity = self.objectWithID(entityID) as! Entity
+            if let active = active {
+                entity.active = active
+            }
+            if let name = name {
+                entity.name = name
+            }
+            if let order = order {
+                entity.order = order
+            }
     }
 }
