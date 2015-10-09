@@ -15,6 +15,7 @@ class ViewController: UIViewController {
     var tableView: UITableView!
     var fetchedResultsControllerManagedObjectContext: NSManagedObjectContext!
     var fetchedResultsController: NSFetchedResultsController!
+    let batchFetchedResultsControllerDelegate = BatchFetchedResultsControllerDelegate()
     
     // variable format:
     // entity<first value, ordered alphabetically><second value><second order priority>
@@ -50,7 +51,7 @@ class ViewController: UIViewController {
         
         persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: NSManagedObjectModel(contentsOfURL: NSBundle.mainBundle().URLForResource("Model", withExtension: "momd")!)!)
         
-        let useInMemoryPersistentStore = true
+        let useInMemoryPersistentStore = false
         if ({ return useInMemoryPersistentStore }()) {
             try! persistentStoreCoordinator.addPersistentStoreWithType(NSInMemoryStoreType,
                 configuration: .None,
@@ -119,13 +120,13 @@ class ViewController: UIViewController {
         fetchedResultsController.delegate = self
         
         NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "entityManagedObjectContextDidSave:",
+            selector: "managedObjectContextDidSave:",
             name: NSManagedObjectContextDidSaveNotification,
             object: .None)
     }
     
     @objc
-    func entityManagedObjectContextDidSave(notification: NSNotification) {
+    func managedObjectContextDidSave(notification: NSNotification) {
         func findSavingManagedObjectContextWithKey(key: String) -> NSManagedObjectContext? {
             if let managedObjects = notification.userInfo?[key] as? NSSet {
                 for managedObjectObject in managedObjects {
@@ -304,68 +305,21 @@ extension ViewController: NSFetchedResultsControllerDelegate {
         forChangeType type: NSFetchedResultsChangeType,
         newIndexPath: NSIndexPath?) {
             let entity = anObject as! Entity
-            switch (
-                type,
-                indexPath,
-                newIndexPath) {
-            case (
-                .Insert,
-                .None,
-                .Some(let newIndexPath)):
-                NSLog("inserting \(entity.name) at \(newIndexPath.row)")
-                tableView.insertRowsAtIndexPaths([
-                    newIndexPath,
-                    ],
-                    withRowAnimation: .Automatic)
-            case (
-                .Delete,
-                .Some(let indexPath),
-                .None):
-                NSLog("deleting \(entity.name) at \(indexPath.row)")
-                tableView.deleteRowsAtIndexPaths([
-                    indexPath,
-                    ],
-                    withRowAnimation: .Automatic)
-            case (
-                .Move,
-                .Some(let indexPath),
-                .Some(let newIndexPath)):
-                let representMoveAsDeleteThenInsert = true
-                if ({ return representMoveAsDeleteThenInsert }()) {
-                    NSLog("deleting \(entity.name) at \(indexPath.row) and inserting at \(newIndexPath.row)")
-                    tableView.deleteRowsAtIndexPaths([
-                        indexPath,
-                        ],
-                        withRowAnimation: .Automatic)
-                    tableView.insertRowsAtIndexPaths([
-                        newIndexPath,
-                        ],
-                        withRowAnimation: .Automatic)
-                } else {
-                    NSLog("moving \(entity.name) from \(indexPath.row) to \(newIndexPath.row)")
-                    tableView.moveRowAtIndexPath(indexPath,
-                        toIndexPath: newIndexPath)
-                }
-            case (
-                .Update,
-                .Some(let indexPath),
-                .None):
-                NSLog("updating \(entity.name) at \(indexPath)")
-                tableView.reloadRowsAtIndexPaths([
-                    indexPath,
-                    ],
-                    withRowAnimation: .Automatic)
-            default:
-                fatalError("Unexpected (type, indexPath, newIndexPath): (\(type), \(indexPath), \(newIndexPath)) for object: \(anObject) in NSFetchedResultsController: \(controller)")
-            }
+            NSLog("entity: \(entity.name), type: \(type), indexPath: \(indexPath?.row), newIndexPath: \(newIndexPath?.row)")
+            batchFetchedResultsControllerDelegate.controller(controller,
+                didChangeObject: anObject,
+                atIndexPath: indexPath,
+                forChangeType: type,
+                newIndexPath: newIndexPath)
     }
     
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
-        tableView.beginUpdates()
+        batchFetchedResultsControllerDelegate.controllerWillChangeContent(controller)
     }
     
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
-        tableView.endUpdates()
+        batchFetchedResultsControllerDelegate.controllerDidChangeContent(controller)
+        batchFetchedResultsControllerDelegate.clearAfterApplyingToTableView(tableView)
     }
     
     func controller(controller: NSFetchedResultsController, didChangeSection sectionInfo: NSFetchedResultsSectionInfo, atIndex sectionIndex: Int, forChangeType type: NSFetchedResultsChangeType) {
@@ -425,5 +379,20 @@ private extension NSManagedObjectContext {
     
     func deleteEntityWithID(entityID: NSManagedObjectID) {
         self.deleteObject(self.objectWithID(entityID))
+    }
+}
+
+extension NSFetchedResultsChangeType: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .Insert:
+            return "Insert"
+        case .Delete:
+            return "Delete"
+        case .Update:
+            return "Update"
+        case .Move:
+            return "Move"
+        }
     }
 }

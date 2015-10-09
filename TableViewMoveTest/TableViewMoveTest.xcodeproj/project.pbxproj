@@ -15,6 +15,7 @@
 		B80916D41BC7FE8F00E43344 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = B80916D21BC7FE8F00E43344 /* Model.xcdatamodeld */; settings = {ASSET_TAGS = (); }; };
 		B80916DD1BC8040200E43344 /* Entity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80916DB1BC8040200E43344 /* Entity+CoreDataProperties.swift */; settings = {ASSET_TAGS = (); }; };
 		B80916DE1BC8040200E43344 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80916DC1BC8040200E43344 /* Entity.swift */; settings = {ASSET_TAGS = (); }; };
+		B80916E01BC8477B00E43344 /* BatchFetchedResultsControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80916DF1BC8477B00E43344 /* BatchFetchedResultsControllerDelegate.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		B80916D31BC7FE8F00E43344 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		B80916DB1BC8040200E43344 /* Entity+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Entity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		B80916DC1BC8040200E43344 /* Entity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
+		B80916DF1BC8477B00E43344 /* BatchFetchedResultsControllerDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchFetchedResultsControllerDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 				B80916D21BC7FE8F00E43344 /* Model.xcdatamodeld */,
 				B80916DB1BC8040200E43344 /* Entity+CoreDataProperties.swift */,
 				B80916DC1BC8040200E43344 /* Entity.swift */,
+				B80916DF1BC8477B00E43344 /* BatchFetchedResultsControllerDelegate.swift */,
 			);
 			path = TableViewMoveTest;
 			sourceTree = "<group>";
@@ -147,6 +150,7 @@
 				B80916C31BC716F100E43344 /* ViewController.swift in Sources */,
 				B80916DE1BC8040200E43344 /* Entity.swift in Sources */,
 				B80916C11BC716F100E43344 /* AppDelegate.swift in Sources */,
+				B80916E01BC8477B00E43344 /* BatchFetchedResultsControllerDelegate.swift in Sources */,
 				B80916D41BC7FE8F00E43344 /* Model.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -261,6 +265,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = TableViewMoveTest/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.jivesoftware.TableViewMoveTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -272,6 +277,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = TableViewMoveTest/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.jivesoftware.TableViewMoveTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -297,6 +303,7 @@
 				B80916D11BC716F100E43344 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
