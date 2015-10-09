@@ -1,16 +1,15 @@
 //
-//  Entity.swift
-//  TableViewMoveTest
+//  Entity.m
+//  NSFRC_UITableView
 //
 //  Created by Heath Borders on 10/9/15.
 //  Copyright © 2015 Heath Borders. All rights reserved.
 //
 
-import Foundation
-import CoreData
+#import "Entity.h"
 
-class Entity: NSManagedObject {
+@implementation Entity
 
 // Insert code here to add functionality to your managed object subclass
 
-}
+@end

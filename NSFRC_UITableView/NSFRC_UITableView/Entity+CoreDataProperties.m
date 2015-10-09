@@ -1,6 +1,6 @@
 //
-//  Entity+CoreDataProperties.swift
-//  TableViewMoveTest
+//  Entity+CoreDataProperties.m
+//  NSFRC_UITableView
 //
 //  Created by Heath Borders on 10/9/15.
 //  Copyright © 2015 Heath Borders. All rights reserved.
@@ -9,13 +9,12 @@
 //  to delete and recreate this implementation file for your updated model.
 //
 
-import Foundation
-import CoreData
+#import "Entity+CoreDataProperties.h"
 
-extension Entity {
+@implementation Entity (CoreDataProperties)
 
-    @NSManaged var order: Double
-    @NSManaged var name: String
-    @NSManaged var active: Bool
+@dynamic active;
+@dynamic name;
+@dynamic order;
 
-}
+@end
