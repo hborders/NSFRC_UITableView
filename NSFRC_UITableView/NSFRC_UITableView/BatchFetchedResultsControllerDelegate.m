@@ -8,23 +8,15 @@
 
 #import "BatchFetchedResultsControllerDelegate.h"
 
+@interface Change()
+
+- (void)applyToTableView:(UITableView *)tableView;
+
+@end
+
 @interface BatchFetchedResultsControllerDelegate()
 
-@property (nonatomic) NSMutableArray *deletedRowIndexPaths;
-@property (nonatomic) NSMutableArray *insertedRowIndexPaths;
-@property (nonatomic) NSMutableArray *updatedRowIndexPaths;
-
-// When building against iOS9, if an entity moves and needs an update,
-// we get an update change and then a move change. However, UITableView
-// crashes when we do this:
-// Without BatchFetchedResultsController (simply mapping change types to their UITableView equivalents)
-// *** Assertion failure in -[_UITableViewUpdateSupport _setupAnimationsForExistingVisibleCells], /SourceCache/UIKit_Sim/UIKit-3347.44.2/UITableViewSupport.m:883
-// CoreData: error: Serious application error.  An exception was caught from the delegate of NSFetchedResultsController during a call to -controllerDidChangeContent:.  Attempt to create two animations for cell with userInfo (null)
-
-// With BatchFetchedResultsController:
-// *** Assertion failure in -[UITableView _endCellAnimationsWithContext:], /SourceCache/UIKit_Sim/UIKit-3347.44.2/UITableView.m:1222
-// CoreData: error: Serious application error.  An exception was caught from the delegate of NSFetchedResultsController during a call to -controllerDidChangeContent:.  attempt to delete and reload the same index path (<NSIndexPath: 0xc000000000000016> {length = 2, path = 0 - 0}) with userInfo (null)
-@property (nonatomic) NSIndexPath *maybePreMoveUpdateIndexPath;
+@property (nonatomic) NSMutableArray *changes;
 
 @end
 
@@ -49,39 +41,40 @@
     switch (type) {
         case NSFetchedResultsChangeInsert:
             if (!indexPath && newIndexPath) {
-                [self handleMaybeExistingMaybePreMoveUpdate];
-                [self.insertedRowIndexPaths addObject:newIndexPath];
+                [self.changes addObject:[[Change alloc] initWithIndexPath:indexPath
+                                                               changeType:type
+                                                             newIndexPath:newIndexPath]];
             } else {
                 abortWithUnexpected();
             }
             break;
         case NSFetchedResultsChangeDelete:
             if (indexPath && !newIndexPath) {
-                [self handleMaybeExistingMaybePreMoveUpdate];
-                [self.deletedRowIndexPaths addObject:indexPath];
+                [self.changes addObject:[[Change alloc] initWithIndexPath:indexPath
+                                                               changeType:type
+                                                             newIndexPath:newIndexPath]];
             } else {
                 abortWithUnexpected();
             }
             break;
         case NSFetchedResultsChangeMove:
             if (indexPath && newIndexPath) {
-                if ([indexPath isEqual:self.maybePreMoveUpdateIndexPath]) {
-                    // Since we need to delete and reinsert the row to
-                    // properly move it, we don't need to update it.
-                    self.maybePreMoveUpdateIndexPath = nil;
-                } else {
-                    [self handleMaybeExistingMaybePreMoveUpdate];
-                }
                 // Instead of moving a row around the table, adding and deleting avoids errors that occur when trying to move a row from a deleted section
-                [self.deletedRowIndexPaths addObject:indexPath];
-                [self.insertedRowIndexPaths addObject:newIndexPath];
+                [self.changes addObject:[[Change alloc] initWithIndexPath:indexPath
+                                                               changeType:NSFetchedResultsChangeDelete
+                                                             newIndexPath:newIndexPath]];
+                [self.changes addObject:[[Change alloc] initWithIndexPath:indexPath
+                                                               changeType:NSFetchedResultsChangeInsert
+                                                             newIndexPath:newIndexPath]];
             } else {
                 abortWithUnexpected();
             }
             break;
         case NSFetchedResultsChangeUpdate:
             if (indexPath && !newIndexPath) {
-                self.maybePreMoveUpdateIndexPath = indexPath;
+                [self.changes addObject:[[Change alloc] initWithIndexPath:indexPath
+                                                               changeType:type
+                                                             newIndexPath:newIndexPath]];
             } else {
                 abortWithUnexpected();
             }
@@ -91,15 +84,11 @@
 }
 
 - (void)controllerWillChangeContent:(NSFetchedResultsController *)controller {
-    self.deletedRowIndexPaths = [NSMutableArray new];
-    self.insertedRowIndexPaths = [NSMutableArray new];
-    self.updatedRowIndexPaths = [NSMutableArray new];
-    self.maybePreMoveUpdateIndexPath = nil;
+    self.changes = [NSMutableArray new];
 }
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-    // there are no more updates, so it wasn't a pre-move update. :)
-    [self handleMaybeExistingMaybePreMoveUpdate];
+    // nothing to do.
 }
 
 #pragma mark - Public API
@@ -107,28 +96,55 @@
 - (void)clearAfterApplyingToTableView:(UITableView *)tableView {
     [tableView beginUpdates];
     
-    [tableView deleteRowsAtIndexPaths:self.deletedRowIndexPaths
-                     withRowAnimation:UITableViewRowAnimationLeft];
-    [tableView insertRowsAtIndexPaths:self.insertedRowIndexPaths
-                     withRowAnimation:UITableViewRowAnimationFade];
-    [tableView reloadRowsAtIndexPaths:self.updatedRowIndexPaths
-                     withRowAnimation:UITableViewRowAnimationNone];
+    for (Change *change in self.changes) {
+        [change applyToTableView:tableView];
+    }
     
     [tableView endUpdates];
     
-    self.deletedRowIndexPaths = nil;
-    self.insertedRowIndexPaths = nil;
-    self.updatedRowIndexPaths = nil;
-    self.maybePreMoveUpdateIndexPath = nil;
+    self.changes = nil;
 }
 
-#pragma mark - Private API
+@end
 
-- (void)handleMaybeExistingMaybePreMoveUpdate {
-    if (self.maybePreMoveUpdateIndexPath) {
-        // there are no more updates, so it wasn't a pre-move update. :)
-        [self.updatedRowIndexPaths addObject:self.maybePreMoveUpdateIndexPath];
-        self.maybePreMoveUpdateIndexPath = nil;
+@implementation Change
+
+- (instancetype)initWithIndexPath:(NSIndexPath *)indexPath
+                       changeType:(NSFetchedResultsChangeType)changeType
+                     newIndexPath:(NSIndexPath *)theNewIndexPath {
+    self = [super init];
+    if (self) {
+        self.indexPath = indexPath;
+        self.changeType = changeType;
+        self.theNewIndexPath = theNewIndexPath;
+    }
+    return self;
+}
+
+- (void)applyToTableView:(UITableView *)tableView {
+    switch (self.changeType) {
+        case NSFetchedResultsChangeInsert:
+            [tableView insertRowsAtIndexPaths:@[
+                                                self.theNewIndexPath,
+                                                ]
+                             withRowAnimation:UITableViewRowAnimationFade];
+            break;
+        case NSFetchedResultsChangeDelete:
+            [tableView deleteRowsAtIndexPaths:@[
+                                                self.indexPath,
+                                                ]
+                             withRowAnimation:UITableViewRowAnimationLeft];
+            break;
+        case NSFetchedResultsChangeMove:
+            [tableView moveRowAtIndexPath:self.indexPath
+                              toIndexPath:self.theNewIndexPath];
+            break;
+        case NSFetchedResultsChangeUpdate:
+            [tableView reloadRowsAtIndexPaths:@[
+                                                self.indexPath,
+                                                ]
+                             withRowAnimation:UITableViewRowAnimationNone];
+            break;
     }
 }
 
